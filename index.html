@@ -27,7 +27,7 @@ canvas{width:100%;display:block;border:2px solid var(--mask);border-radius:6px;b
 #inapp .btn{padding:7px 14px}
 body.has-banner{padding-top:var(--bh,0px)}
 
-#login{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--mask) 0%,var(--mask-2) 100%)}
+#login{min-height:calc(100vh - 64px);display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--mask) 0%,var(--mask-2) 100%)}
 .card{background:var(--silk);width:100%;max-width:440px;padding:30px 26px;border-radius:6px;border-top:6px solid var(--copper)}
 .card h1{margin:0 0 4px;font-size:1.5rem;line-height:1.3}
 .card p{margin:0 0 16px;color:#47594f}
@@ -61,6 +61,8 @@ body.has-banner{padding-top:var(--bh,0px)}
 table.r{border-collapse:collapse;font-size:.9rem;margin-top:10px;width:100%}
 table.r th,table.r td{border:1px solid var(--line);padding:4px 8px;text-align:left}
 table.r tr.bad td{background:#fde8e8}
+.credit{text-align:center;padding:14px 16px;font-size:.9rem;color:#37483f;border-top:1px solid var(--line);background:var(--silk)}
+.credit b{color:var(--mask)}
 </style></head><body>
 
 <div id="inapp" class="hidden" role="alert">
@@ -142,6 +144,8 @@ table.r tr.bad td{background:#fde8e8}
 
   <div id="result" class="hidden"></div>
 </main>
+
+<footer class="credit">ผู้พัฒนาระบบ: <b>ครูวิทยากร วรรณา</b> แผนกอิเล็กทรอนิกส์ วิทยาลัยสารพัดช่างศรีสะเกษ</footer>
 
 <script>
 
@@ -246,7 +250,7 @@ function loadImage(src){
 
 
 /* ===== ตั้งค่า ===== */
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbyivQRzGLScS5TUHFDHckZPZnZsPAtngL89GAsnATdRen10rRA2kLUWh-GhvHSXlq3X/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyG3nREBDr_BhoQC2ff94M2CvYyjwZPsaZ5dtXncJVpam2FqfZPQmZo6xHrj_GQd4_J/exec";
 const N_Q = 20;
 const MULTS = [1, 10, 1000, 10000];
 const $ = id => document.getElementById(id);
