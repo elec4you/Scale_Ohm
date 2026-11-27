@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เกมอ่านสเกลโอห์มมิเตอร์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+
+:root{--mask:#0f3d2e;--mask-2:#16523d;--copper:#c8883a;--silk:#f4f4ee;--ink:#12201a;--ok:#1f9d55;--bad:#d63b3b;--line:#cfd8d2}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'IBM Plex Sans Thai',system-ui,sans-serif;background:var(--silk);color:var(--ink);line-height:1.6}
+button,input,select,textarea{font:inherit}
+.hidden{display:none!important}
+.btn{display:inline-block;background:var(--mask);color:#fff;border:0;padding:10px 18px;border-radius:4px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--mask-2)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--copper);outline-offset:2px}
+.btn.alt{background:#fff;color:var(--mask);border:1.5px solid var(--mask)}
+.btn.danger{background:var(--bad)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],input[type=number],select,textarea{padding:9px 11px;border:1.5px solid var(--line);border-radius:4px;background:#fff}
+canvas{width:100%;display:block;border:2px solid var(--mask);border-radius:6px;background:#fff;touch-action:manipulation}
+
+
+#inapp{position:fixed;left:0;right:0;top:0;z-index:2000;background:#fff3cd;color:#4a3a00;border-bottom:3px solid #c8883a;
+  padding:10px 14px;font-size:.95rem;line-height:1.5}
+#inapp b{display:block;margin-bottom:2px}
+#inapp .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#inapp .btn{padding:7px 14px}
+body.has-banner{padding-top:var(--bh,0px)}
+
+#login{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,var(--mask) 0%,var(--mask-2) 100%)}
+.card{background:var(--silk);width:100%;max-width:440px;padding:30px 26px;border-radius:6px;border-top:6px solid var(--copper)}
+.card h1{margin:0 0 4px;font-size:1.5rem;line-height:1.3}
+.card p{margin:0 0 16px;color:#47594f}
+.card label.f{display:block;font-weight:500;margin:12px 0 4px}
+.card input[type=text]{width:100%}
+.full{width:100%;margin-top:18px}
+.err{color:var(--bad);min-height:1.4em;margin:8px 0 0;font-size:.95rem}
+.opt{display:flex;gap:10px;align-items:flex-start;margin:10px 0;padding:10px 12px;border:1.5px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+.opt input{margin-top:5px}
+#game,#start{max-width:1100px;margin:0 auto;padding:16px}
+.topbar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;background:var(--mask);color:#fff;padding:10px 16px;border-radius:6px}
+.topbar b{color:#f2c98b}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 8px}
+.knob{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.knob span{font-size:.9rem;color:#37483f}
+.knob i{font-style:normal;padding:5px 12px;border-radius:999px;border:2px solid #9aa;background:#fff;font-weight:700;color:#789}
+.knob i.on{background:var(--copper);border-color:var(--copper);color:#fff}
+.qbox{margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:14px}
+.qbox h2{margin:0 0 6px;font-size:1.1rem}
+.ans{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.ans input[type=number]{width:150px;font-size:1.1rem}
+.fb{margin-top:10px;padding:10px 12px;border-radius:4px;font-size:.98rem}
+.fb.ok{background:#d6f5e0;border-left:5px solid var(--ok)}
+.fb.bad{background:#fde0e0;border-left:5px solid var(--bad)}
+.guide{margin-top:14px;background:#fff;border:1.5px solid var(--line);border-radius:6px;padding:10px 14px}
+.guide summary{cursor:pointer;font-weight:700}
+.guide li{margin:4px 0}
+#result{background:#fff;border-left:6px solid var(--copper);border-radius:4px;padding:20px;margin-top:14px}
+.score{font-size:2.2rem;font-weight:700;color:var(--mask)}
+table.r{border-collapse:collapse;font-size:.9rem;margin-top:10px;width:100%}
+table.r th,table.r td{border:1px solid var(--line);padding:4px 8px;text-align:left}
+table.r tr.bad td{background:#fde8e8}
+</style></head><body>
+
+<div id="inapp" class="hidden" role="alert">
+  <b>กำลังเปิดในเบราว์เซอร์ของแอปแชท</b>
+  ภาพสเกลอาจแสดงไม่เต็มจอ แนะนำให้เปิดใน Chrome หรือ Safari
+  <div class="row">
+    <button class="btn" id="openExt" type="button">เปิดในเบราว์เซอร์</button>
+    <button class="btn alt" id="copyLink" type="button">คัดลอกลิงก์</button>
+    <button class="btn alt" id="closeBanner" type="button">ปิด</button>
+  </div>
+  <div id="inappHint" style="margin-top:6px"></div>
+</div>
+
+
+<!-- ล็อกอิน -->
+<section id="login">
+  <form class="card" id="loginForm" autocomplete="off">
+    <h1>เกมอ่านสเกลโอห์มมิเตอร์</h1>
+    <p>อ่านค่าที่เข็มชี้บนสเกลโอห์ม (Ω) แล้วคูณด้วยย่านวัดที่ตั้งไว้</p>
+    <label class="f" for="fname">ชื่อ</label><input type="text" id="fname" required>
+    <label class="f" for="lname">สกุล</label><input type="text" id="lname" required>
+    <label class="f" for="cls">ชั้น</label><input type="text" id="cls" placeholder="เช่น ปวช.2/1" required>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn full" type="submit">ต่อไป</button>
+  </form>
+</section>
+
+<!-- เลือกระดับ -->
+<section id="start" class="hidden">
+  <div class="card" style="max-width:560px;margin:24px auto">
+    <h1>เลือกรูปแบบ</h1>
+    <p id="hello"></p>
+    <label class="opt"><input type="radio" name="level" value="1" checked>
+      <span><b>ระดับ 1: ย่าน ×1 อย่างเดียว</b><br>ฝึกอ่านขีดยาว/ขีดสั้นบนสเกลก่อน</span></label>
+    <label class="opt"><input type="radio" name="level" value="2">
+      <span><b>ระดับ 2: สุ่มย่าน ×1 / ×10 / ×1k / ×10k</b><br>อ่านค่าบนสเกล แล้วคูณตัวคูณย่าน</span></label>
+    <label class="opt"><input type="checkbox" id="examMode">
+      <span><b>โหมดสอบ</b><br>ไม่เฉลยระหว่างทำ ดูผลรวมตอนจบ</span></label>
+    <button class="btn full" id="startBtn" type="button">เริ่มทำ 20 ข้อ</button>
+    <button class="btn alt full" id="logout1" type="button">ออกจากระบบ</button>
+  </div>
+</section>
+
+<!-- เกม -->
+<main id="game" class="hidden">
+  <div class="topbar">
+    <div id="who"></div>
+    <div class="stats"><span>ข้อ <b id="qNo">1</b>/20</span><span>คะแนน <b id="sc">0</b></span><span>เวลา <b id="timer">00:00</b></span></div>
+  </div>
+
+  <div class="tools">
+    <button class="btn alt" id="viewBtn" type="button">มุมมอง: ซูมที่เข็ม</button>
+    <div class="knob" aria-label="ย่านวัด"><span>ย่านวัด:</span>
+      <i data-m="1">×1</i><i data-m="10">×10</i><i data-m="1000">×1k</i><i data-m="10000">×10k</i></div>
+  </div>
+
+  <canvas id="cv" width="1000" aria-label="หน้าปัดมิเตอร์สเกลโอห์ม"></canvas>
+
+  <div class="qbox">
+    <h2 id="qText">อ่านค่าที่เข็มชี้ แล้วกรอกเป็นค่าความต้านทาน</h2>
+    <div class="ans">
+      <input type="number" id="ansVal" step="any" inputmode="decimal" placeholder="ค่าที่อ่านได้" aria-label="ค่าที่อ่านได้">
+      <select id="ansUnit" aria-label="หน่วย"><option value="1">Ω</option><option value="1000">kΩ</option><option value="1000000">MΩ</option></select>
+      <button class="btn" id="checkBtn" type="button">ตกลง</button>
+      <button class="btn alt hidden" id="nextBtn" type="button">ข้อต่อไป</button>
+    </div>
+    <div id="fb" class="fb hidden"></div>
+  </div>
+
+  <details class="guide">
+    <summary>วิธีอ่านสเกลโอห์ม</summary>
+    <ul>
+      <li>สเกลโอห์ม (แถบสีส้มบนสุด) <b>0 อยู่ขวา ∞ อยู่ซ้าย</b> และขีดไม่เท่ากันทุกช่วง</li>
+      <li>ดูเลขสองขีดยาวที่เข็มอยู่ระหว่าง แล้วนับว่าแต่ละขีดสั้นห่างกันเท่าใด</li>
+      <li>ค่าที่ได้ = ค่าบนสเกล × ตัวคูณของย่านวัด (×1, ×10, ×1k, ×10k)</li>
+      <li>เช่น เข็มชี้ 30 ที่ย่าน ×10 อ่านได้ 300 Ω และที่ย่าน ×1k อ่านได้ 30 kΩ</li>
+    </ul>
+  </details>
+
+  <div id="result" class="hidden"></div>
+</main>
+
+<script>
+
+const IMG_SRC = "scale.jpg";
+const IMG_W = 1436, IMG_H = 430;
+let SCALE = {"pivot":[722.66,1146.44],"R":1073.72,"ticks":[{"v":null,"a":-36.59,"t":"L"},{"v":2000,"a":-35.83,"t":"L"},{"v":1000,"a":-35.09,"t":"L"},{"v":500,"a":-33.74,"t":"L"},{"v":400,"a":-32.97,"t":"S"},{"v":300,"a":-31.92,"t":"S"},{"v":250,"a":-30.98,"t":"S"},{"v":200,"a":-29.79,"t":"L"},{"v":180,"a":-29.04,"t":"S"},{"v":160,"a":-28.221,"t":"S"},{"v":140,"a":-27.09,"t":"S"},{"v":120,"a":-25.89,"t":"S"},{"v":100,"a":-24.13,"t":"L"},{"v":95,"a":-23.55,"t":"S"},{"v":90,"a":-22.96,"t":"S"},{"v":85,"a":-22.36,"t":"S"},{"v":80,"a":-21.64,"t":"S"},{"v":75,"a":-20.88,"t":"S"},{"v":70,"a":-20.01,"t":"S"},{"v":65,"a":-18.96,"t":"S"},{"v":60,"a":-17.93,"t":"S"},{"v":55,"a":-16.72,"t":"S"},{"v":50,"a":-15.29,"t":"L"},{"v":48,"a":-14.67,"t":"S"},{"v":46,"a":-14.1,"t":"S"},{"v":44,"a":-13.32,"t":"S"},{"v":42,"a":-12.56,"t":"S"},{"v":40,"a":-11.79,"t":"S"},{"v":38,"a":-10.87,"t":"S"},{"v":36,"a":-9.95,"t":"S"},{"v":34,"a":-8.88,"t":"S"},{"v":32,"a":-7.8,"t":"S"},{"v":30,"a":-6.63,"t":"L"},{"v":28,"a":-5.44,"t":"S"},{"v":26,"a":-4.13,"t":"S"},{"v":24,"a":-2.67,"t":"S"},{"v":22,"a":-1.08,"t":"S"},{"v":20,"a":0.66,"t":"L"},{"v":19,"a":1.52,"t":"S"},{"v":18,"a":2.54,"t":"S"},{"v":17,"a":3.53,"t":"S"},{"v":16,"a":4.67,"t":"S"},{"v":15,"a":5.87,"t":"S"},{"v":14,"a":7,"t":"S"},{"v":13,"a":8.28,"t":"S"},{"v":12,"a":9.67,"t":"S"},{"v":11,"a":11.015,"t":"S"},{"v":10,"a":12.49,"t":"L"},{"v":9.5,"a":13.338,"t":"S"},{"v":9,"a":14.15,"t":"S"},{"v":8.5,"a":14.981,"t":"S"},{"v":8,"a":15.83,"t":"S"},{"v":7.5,"a":16.672,"t":"S"},{"v":7,"a":17.66,"t":"S"},{"v":6.5,"a":18.64,"t":"S"},{"v":6,"a":19.63,"t":"S"},{"v":5.5,"a":20.691,"t":"S"},{"v":5,"a":21.89,"t":"L"},{"v":4.5,"a":22.871,"t":"S"},{"v":4,"a":24.08,"t":"S"},{"v":3.5,"a":25.345,"t":"S"},{"v":3,"a":26.63,"t":"S"},{"v":2.5,"a":27.966,"t":"S"},{"v":2,"a":29.53,"t":"L"},{"v":1.8,"a":30.08,"t":"S"},{"v":1.6,"a":30.68,"t":"S"},{"v":1.4,"a":31.276,"t":"S"},{"v":1.2,"a":31.762,"t":"S"},{"v":1,"a":32.5,"t":"L"},{"v":0.8,"a":33.073,"t":"S"},{"v":0.6,"a":33.771,"t":"S"},{"v":0.4,"a":34.561,"t":"S"},{"v":0.2,"a":35.317,"t":"S"},{"v":0,"a":36.15,"t":"L"}]};          // {pivot:[x,y], R, ticks:[{v,a,t}]}  v=null คือ ∞ ; t = L(ขีดยาว) / S(ขีดสั้น)
+const PX = () => SCALE.pivot[0], PY = () => SCALE.pivot[1], RR = () => SCALE.R;
+
+function polar(a, r){ const t = a * Math.PI / 180; return [PX() + r * Math.sin(t), PY() - r * Math.cos(t)]; }
+function tipPoint(a){ return polar(a, RR() + 12); }
+function fmtNum(n){
+  if (n === null) return "∞";
+  if (n >= 1e6) return (n / 1e6) + " MΩ";
+  if (n >= 1e3) return (n / 1e3) + " kΩ";
+  return n + " Ω";
+}
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+const FULL_VIEW = {x: 0, y: 0, w: IMG_W, h: IMG_H};
+function tipView(a, w){
+  w = w || 520; const h = Math.round(w * 0.58);
+  const [tx, ty] = tipPoint(a);
+  return {x: clamp(tx - w / 2, 0, IMG_W - w), y: clamp(ty - h * 0.42, 0, IMG_H - h), w: w, h: h};
+}
+
+// วาดภาพสเกล + เข็ม (+ เส้นขีดทั้งหมดถ้า opt.overlay)
+function drawScene(canvas, img, view, angle, opt){
+  opt = opt || {};
+  const s = canvas.width / view.w, H = Math.round(view.h * s);
+  if (canvas.height !== H) canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, view.x, view.y, view.w, view.h, 0, 0, canvas.width, canvas.height);
+  const X = x => (x - view.x) * s, Y = y => (y - view.y) * s;
+
+  if (opt.overlay){
+    SCALE.ticks.forEach((t, i) => {
+      const sel = i === opt.selected;
+      const [x1, y1] = polar(t.a, RR() - 20), [x2, y2] = polar(t.a, RR() + 20);
+      ctx.strokeStyle = sel ? "#00a2ff" : "rgba(220,0,200,.75)";
+      ctx.lineWidth = (sel ? 2.2 : 1) * Math.max(1, s * 0.9);
+      ctx.beginPath(); ctx.moveTo(X(x1), Y(y1)); ctx.lineTo(X(x2), Y(y2)); ctx.stroke();
+      if (sel || t.t === "L"){
+        const [lx, ly] = polar(t.a, RR() - 62);
+        ctx.fillStyle = sel ? "#0070c0" : "#a0008f";
+        ctx.font = "bold " + Math.round((sel ? 22 : 15) * Math.max(1, s * 0.8)) + "px sans-serif";
+        ctx.textAlign = "center"; ctx.fillText(t.v === null ? "∞" : String(t.v), X(lx), Y(ly));
+      }
+    });
+  }
+  if (angle !== null && angle !== undefined){
+    const a = angle * Math.PI / 180;
+    const [tx, ty] = tipPoint(angle);
+    const r0 = (PY() - (IMG_H + 80)) / Math.cos(a);          // เริ่มจากใต้ขอบภาพ
+    const sx = PX() + r0 * Math.sin(a), sy = PY() - r0 * Math.cos(a);
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 6 * Math.max(1, s * 0.8);
+    ctx.beginPath(); ctx.moveTo(X(sx), Y(sy)); ctx.lineTo(X(tx), Y(ty)); ctx.stroke();
+    ctx.strokeStyle = "#d4101f"; ctx.lineWidth = 2.6 * Math.max(1, s * 0.8);
+    ctx.beginPath(); ctx.moveTo(X(sx), Y(sy)); ctx.lineTo(X(tx), Y(ty)); ctx.stroke();
+  }
+}
+
+function loadImage(src){
+  return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+}
+
+
+(function(){
+  const ua = navigator.userAgent || "";
+  const isAndroid = /Android/i.test(ua), isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const inApp = /FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\/|MicroMessenger|Zalo|TikTok|Snapchat/i.test(ua);
+  const url = location.href;
+  if (!/^https?:$/.test(location.protocol)) return;
+  if (/Line\//i.test(ua) && !/openExternalBrowser=1/.test(url)){
+    location.replace(url + (url.includes("?") ? "&" : "?") + "openExternalBrowser=1"); return;
+  }
+  if (!inApp) return;
+  const chromeIntent = "intent://" + location.host + location.pathname + location.search +
+    "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(url) + ";end";
+  const chromeIOS = "googlechromes://" + location.host + location.pathname + location.search;
+  let tried = false;
+  try { tried = sessionStorage.getItem("triedExt") === "1"; } catch(_){}
+  if (isAndroid && !tried){ try { sessionStorage.setItem("triedExt","1"); } catch(_){} location.href = chromeIntent; }
+  window.addEventListener("DOMContentLoaded", () => {
+    const b = document.getElementById("inapp");
+    b.classList.remove("hidden"); document.body.classList.add("has-banner");
+    const setH = () => document.body.style.setProperty("--bh", b.offsetHeight + "px");
+    setH(); window.addEventListener("resize", setH);
+    document.getElementById("inappHint").textContent = isIOS
+      ? "iPhone: กด “เปิดในเบราว์เซอร์” (ต้องมี Chrome) หรือกดปุ่ม ⋯ / แชร์ แล้วเลือก “เปิดใน Safari”"
+      : "ถ้าไม่เปิดอัตโนมัติ ให้กดปุ่ม ⋮ มุมขวาบน แล้วเลือก “เปิดใน Chrome / เบราว์เซอร์”";
+    document.getElementById("openExt").onclick = () => { location.href = isIOS ? chromeIOS : chromeIntent; };
+    document.getElementById("copyLink").onclick = async () => {
+      try { await navigator.clipboard.writeText(url); alert("คัดลอกลิงก์แล้ว"); } catch(_){ prompt("คัดลอกลิงก์นี้:", url); }
+    };
+    document.getElementById("closeBanner").onclick = () => {
+      b.classList.add("hidden"); document.body.classList.remove("has-banner"); document.body.style.removeProperty("--bh");
+    };
+  });
+})();
+
+
+/* ===== ตั้งค่า ===== */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyivQRzGLScS5TUHFDHckZPZnZsPAtngL89GAsnATdRen10rRA2kLUWh-GhvHSXlq3X/exec";
+const N_Q = 20;
+const MULTS = [1, 10, 1000, 10000];
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let img, user = null, level = 1, exam = false;
+let qs = [], qi = 0, answers = [], answered = false, score = 0, startTime = 0, timerId = null, attempt = 0;
+let cur = -36.6, target = -36.6, vel = 0, raf = null, zoomMode = window.innerWidth < 700, view = FULL_VIEW;
+
+/* ===== ล็อกอิน ===== */
+$("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = $("fname").value.trim(), l = $("lname").value.trim(), c = $("cls").value.trim();
+  if (!f || !l || !c){ $("loginErr").textContent = "กรอกชื่อ สกุล และชั้นให้ครบ"; return; }
+  user = {fname: f, lname: l, cls: c};
+  try { sessionStorage.setItem("ohmUser", JSON.stringify(user)); } catch(_){}
+  showStart();
+});
+function logout(){
+  try { sessionStorage.removeItem("ohmUser"); } catch(_){}
+  clearInterval(timerId); user = null;
+  ["start", "game"].forEach(i => $(i).classList.add("hidden")); $("login").classList.remove("hidden");
+  $("loginForm").reset();
+}
+$("logout1").onclick = logout;
+function showStart(){
+  $("login").classList.add("hidden"); $("game").classList.add("hidden"); $("start").classList.remove("hidden");
+  $("hello").innerHTML = "สวัสดี <b>" + esc(user.fname) + " " + esc(user.lname) + "</b> · ชั้น " + esc(user.cls);
+}
+try { const s = sessionStorage.getItem("ohmUser"); if (s){ user = JSON.parse(s); document.addEventListener("DOMContentLoaded", showStart); } } catch(_){}
+
+/* ===== สร้างโจทย์ 20 ข้อ: ขีดยาว 10 + ขีดสั้น 10 กระจายทั้งสเกล ===== */
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function buildQuestions(){
+  const ticks = SCALE.ticks.filter(t => t.v !== null);
+  const longs = shuffle(ticks.filter(t => t.t === "L")).slice(0, 10);
+  const shorts = ticks.filter(t => t.t === "S").sort((a, b) => a.a - b.a);
+  const picked = [], n = shorts.length;
+  for (let k = 0; k < 10; k++){                       // แบ่งช่วงเท่า ๆ กันแล้วสุ่มช่วงละ 1 ขีด
+    const lo = Math.floor(k * n / 10), hi = Math.max(lo + 1, Math.floor((k + 1) * n / 10));
+    picked.push(shorts[lo + Math.floor(Math.random() * (hi - lo))]);
+  }
+  const list = shuffle(longs.concat(picked));
+  const mults = level === 1 ? list.map(() => 1) : shuffle(list.map((_, i) => MULTS[i % 4]));
+  return list.map((t, i) => ({tick: t, mult: mults[i]}));
+}
+
+/* ===== เริ่ม ===== */
+$("startBtn").onclick = () => {
+  level = +document.querySelector('input[name=level]:checked').value; exam = $("examMode").checked;
+  qs = buildQuestions(); qi = 0; answers = []; score = 0; attempt++;
+  $("start").classList.add("hidden"); $("game").classList.remove("hidden");
+  $("who").innerHTML = "<b>" + esc(user.fname) + " " + esc(user.lname) + "</b> · ชั้น " + esc(user.cls);
+  $("result").classList.add("hidden");
+  startTime = Date.now(); clearInterval(timerId); timerId = setInterval(tick, 500); tick();
+  showQuestion();
+};
+function tick(){ const s = Math.floor((Date.now() - startTime) / 1000); $("timer").textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+
+function showQuestion(){
+  const q = qs[qi]; answered = false;
+  $("qNo").textContent = qi + 1; $("sc").textContent = exam ? "?" : score;
+  $("ansVal").value = ""; $("ansVal").disabled = false; $("ansUnit").disabled = false; $("ansUnit").value = "1";
+  $("checkBtn").classList.remove("hidden"); $("nextBtn").classList.add("hidden"); $("fb").classList.add("hidden");
+  document.querySelectorAll(".knob i").forEach(i => i.classList.toggle("on", +i.dataset.m === q.mult));
+  $("qText").textContent = level === 1
+    ? "ย่านวัด ×1 — เข็มชี้ที่ค่าเท่าใด (Ω)?"
+    : "ย่านวัด ×" + (q.mult >= 1000 ? (q.mult / 1000) + "k" : q.mult) + " — เข็มชี้ได้ค่าความต้านทานเท่าใด?";
+  moveNeedle(q.tick.a); $("ansVal").focus({preventScroll: true});
+}
+
+/* ===== เข็ม (สปริงแกว่งเข้าหาตำแหน่ง) ===== */
+function moveNeedle(a){ target = a; if (!raf){ let last = performance.now(); raf = requestAnimationFrame(function step(now){
+  const dt = Math.min(0.03, (now - last) / 1000); last = now;
+  vel += ((target - cur) * 90 - vel * 11) * dt; cur += vel * dt;
+  paint();
+  if (Math.abs(target - cur) < 0.003 && Math.abs(vel) < 0.02){ cur = target; vel = 0; paint(); raf = null; } else raf = requestAnimationFrame(step);
+}); } }
+function paint(){
+  if (!img) return;
+  view = zoomMode ? tipView(cur, 520) : FULL_VIEW;
+  drawScene($("cv"), img, view, cur);
+}
+$("viewBtn").onclick = () => { zoomMode = !zoomMode; $("viewBtn").textContent = "มุมมอง: " + (zoomMode ? "ซูมที่เข็ม" : "ทั้งสเกล"); paint(); };
+$("viewBtn").textContent = "มุมมอง: " + (zoomMode ? "ซูมที่เข็ม" : "ทั้งสเกล");
+
+/* ===== ตรวจคำตอบ ===== */
+function neighbors(v){
+  const vals = SCALE.ticks.filter(t => t.v !== null).map(t => t.v).sort((a, b) => a - b);
+  const i = vals.indexOf(v); return [vals[i - 1], vals[i + 1]];
+}
+function check(){
+  if (answered) return;
+  const raw = $("ansVal").value.trim();
+  if (raw === "" || isNaN(+raw)){ $("ansVal").focus(); return; }
+  const q = qs[qi], given = +raw * +$("ansUnit").value, expect = q.tick.v * q.mult;
+  const ok = Math.abs(given - expect) <= 1e-9 * Math.max(1, expect);
+  answered = true; if (ok) score++;
+  answers.push({v: q.tick.v, type: q.tick.t, mult: q.mult, given, expect, ok});
+  $("ansVal").disabled = true; $("ansUnit").disabled = true; $("checkBtn").classList.add("hidden");
+  $("nextBtn").classList.remove("hidden"); $("nextBtn").textContent = qi === N_Q - 1 ? "ส่งผล" : "ข้อต่อไป";
+  const fb = $("fb"); fb.classList.remove("hidden", "ok", "bad");
+  if (exam){ fb.classList.add("ok"); fb.textContent = "บันทึกคำตอบแล้ว"; }
+  else {
+    $("sc").textContent = score;
+    const [lo, hi] = neighbors(q.tick.v);
+    const calc = "ขีดนี้อ่านได้ " + q.tick.v + " บนสเกล × " + q.mult + " = " + fmtNum(expect) +
+      (lo !== undefined && hi !== undefined ? " (ขีดข้างเคียงคือ " + lo + " และ " + hi + ")" : "");
+    fb.classList.add(ok ? "ok" : "bad");
+    fb.textContent = (ok ? "ถูกต้อง ✓  " : "ยังไม่ถูก ✗  คุณตอบ " + fmtNum(given) + "  ") + calc;
+  }
+  $("nextBtn").focus({preventScroll: true});
+}
+$("checkBtn").onclick = check;
+$("ansVal").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+$("nextBtn").onclick = () => { if (qi === N_Q - 1) finish(); else { qi++; showQuestion(); } };
+
+/* ===== จบ + บันทึก ===== */
+function finish(){
+  clearInterval(timerId);
+  const seconds = Math.floor((Date.now() - startTime) / 1000), pct = Math.round(score / N_Q * 100);
+  const rows = answers.map((a, i) => '<tr class="' + (a.ok ? "" : "bad") + '"><td>' + (i + 1) + "</td><td>" +
+    (a.type === "L" ? "ยาว" : "สั้น") + "</td><td>" + a.v + " ×" + a.mult + "</td><td>" + fmtNum(a.expect) +
+    "</td><td>" + fmtNum(a.given) + "</td><td>" + (a.ok ? "✓" : "✗") + "</td></tr>").join("");
+  $("result").innerHTML =
+    '<h2>ผลการทดสอบ</h2><div class="score">' + score + " / " + N_Q + " (" + pct + '%)</div>' +
+    "<div>ใช้เวลา " + Math.floor(seconds / 60) + " นาที " + (seconds % 60) + " วินาที · ครั้งที่ " + attempt + "</div>" +
+    '<div id="saveMsg" style="margin:8px 0">กำลังบันทึกผลลง Google Sheet…</div>' +
+    '<button class="btn" id="again" type="button">ทำใหม่</button> <button class="btn alt" id="out" type="button">ออกจากระบบ</button>' +
+    '<table class="r"><tr><th>ข้อ</th><th>ขีด</th><th>สเกล×ย่าน</th><th>เฉลย</th><th>ตอบ</th><th></th></tr>' + rows + "</table>";
+  $("result").classList.remove("hidden"); $("result").scrollIntoView({behavior: "smooth"});
+  $("again").onclick = showStart; $("out").onclick = logout;
+  saveResult({
+    time: new Date().toLocaleString("th-TH"), fname: user.fname, lname: user.lname, cls: user.cls,
+    score, total: N_Q, percent: pct, seconds, attempt,
+    detail: "[สเกลโอห์ม ระดับ" + level + (exam ? " โหมดสอบ" : "") + "] " +
+      answers.map((a, i) => (i + 1) + ":" + a.v + "x" + a.mult + "=" + a.expect + " ตอบ" + a.given + (a.ok ? "✓" : "✗")).join(" | ")
+  });
+}
+async function saveResult(data){
+  const msg = $("saveMsg");
+  if (!SHEET_URL || SHEET_URL.startsWith("PASTE_")){ msg.textContent = "ยังไม่ได้ตั้งค่า SHEET_URL — ผลยังไม่ถูกบันทึก"; return; }
+  try {
+    await fetch(SHEET_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(data)});
+    msg.textContent = "ส่งผลไปยัง Google Sheet แล้ว";
+  } catch (err){
+    msg.innerHTML = 'บันทึกไม่สำเร็จ <button class="btn alt" id="retry" type="button">ลองส่งอีกครั้ง</button>';
+    $("retry").onclick = () => { msg.textContent = "กำลังส่งอีกครั้ง…"; saveResult(data); };
+  }
+}
+
+loadImage(IMG_SRC).then(i => { img = i; paint(); }).catch(() => alert("โหลดภาพ scale.jpg ไม่ได้ ต้องวางไฟล์ไว้โฟลเดอร์เดียวกับ index.html"));
+</script></body></html>
